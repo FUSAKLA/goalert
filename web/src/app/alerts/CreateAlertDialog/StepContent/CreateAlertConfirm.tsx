@@ -63,6 +63,24 @@ export function CreateAlertConfirm(): React.JSX.Element {
         )}
       />
       <FormField
+        name='severity'
+        render={(p: { value: string }) => {
+          const severityLabels: { [key: string]: string } = {
+            SeverityInfo: 'Info',
+            SeverityWarning: 'Warning',
+            SeverityHigh: 'High',
+            SeverityCritical: 'Critical',
+          }
+          return (
+            <Field label='Severity'>
+              <Typography variant='body1' component='p'>
+                {severityLabels[p.value] || p.value}
+              </Typography>
+            </Field>
+          )
+        }}
+      />
+      <FormField
         name='serviceIDs'
         render={(p: { value: string[] }) => (
           <Field label={`Selected Services (${p.value.length})`}>

@@ -23,6 +23,7 @@ export interface Alert {
   recentEvents: AlertLogEntryConnection
   service?: null | Service
   serviceID: string
+  severity: AlertSeverity
   state?: null | AlertState
   status: AlertStatus
   summary: string
@@ -90,6 +91,7 @@ export interface AlertSearchOptions {
   createdBefore?: null | ISOTimestamp
   favoritesOnly?: null | boolean
   filterByServiceID?: null | string[]
+  filterBySeverity?: null | AlertSeverity[]
   filterByStatus?: null | AlertStatus[]
   first?: null | number
   includeNotified?: null | boolean
@@ -101,6 +103,12 @@ export interface AlertSearchOptions {
 }
 
 export type AlertSearchSort = 'dateID' | 'dateIDReverse' | 'statusID'
+
+export type AlertSeverity =
+  | 'SeverityCritical'
+  | 'SeverityHigh'
+  | 'SeverityInfo'
+  | 'SeverityWarning'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp
@@ -229,6 +237,7 @@ export interface CreateAlertInput {
   meta?: null | AlertMetadataInput[]
   sanitize?: null | boolean
   serviceID: string
+  severity?: null | AlertSeverity
   summary: string
 }
 

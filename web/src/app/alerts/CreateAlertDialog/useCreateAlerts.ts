@@ -13,6 +13,7 @@ interface Variable {
   summary: string
   details: string
   serviceID: string
+  severity: string
 }
 
 const baseMutation = gql`
@@ -51,6 +52,7 @@ export const useCreateAlerts = (
       summary: value.summary.trim(),
       details: value.details.trim(),
       serviceID: svcID,
+      severity: value.severity,
     }
   })
 

@@ -79,6 +79,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	details := r.FormValue("details")
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
+	severity := r.FormValue("severity")
 
 	meta := make(map[string]string)
 	for _, v := range r.Form["meta"] {
@@ -97,8 +98,8 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var b struct {
-			Summary, Details, Action, Dedup *string
-			Meta                            map[string]string
+			Summary, Details, Action, Dedup, Severity *string
+			Meta                                       map[string]string
 		}
 		err = json.Unmarshal(data, &b)
 		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
@@ -117,6 +118,9 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		if b.Action != nil {
 			action = *b.Action
 		}
+		if b.Severity != nil {
+			severity = *b.Severity
+		}
 		if b.Meta != nil {
 			meta = b.Meta
 		}
@@ -125,6 +129,11 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	status := alert.StatusTriggered
 	if action == "close" {
 		status = alert.StatusClosed
+	}
+
+	sev := alert.SeverityInfo
+	if severity != "" {
+		sev = alert.Severity(severity)
 	}
 
 	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
@@ -137,6 +146,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		ServiceID: serviceID,
 		Dedup:     alert.NewUserDedup(dedup),
 		Status:    status,
+		Severity:  sev,
 	}
 
 	var resp struct {

@@ -1,7 +1,7 @@
 import React, { ReactElement, useState, useContext, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useQuery, gql } from 'urql'
-import { Grid, Hidden, ListItemText } from '@mui/material'
+import { Grid, Hidden, ListItemText, Chip } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import {
   ArrowUpward as EscalateIcon,
@@ -49,6 +49,7 @@ export const alertsListQuery = gql`
         id
         alertID
         status
+        severity
         summary
         details
         createdAt
@@ -123,6 +124,8 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
   const [allServices] = useURLParam('allServices', false)
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
+  const [severityFilter] = useURLParam<string[]>('severity', [])
+  const [serviceNameFilter] = useURLParam<string>('serviceName', '')
 
   useEffect(() => {
     if (analyticsID && event.length)
@@ -147,6 +150,8 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
   const variables = {
     input: {
       filterByStatus: getStatusFilter(filter),
+      filterBySeverity: severityFilter.length > 0 ? severityFilter : null,
+      search: serviceNameFilter || undefined,
       first: 25,
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
@@ -230,6 +235,26 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
   }
 
   /*
+   * Returns severity badge label and color
+   */
+  function getSeverityDisplay(severity: string): {
+    label: string
+    color: string
+  } {
+    switch (severity) {
+      case 'SeverityCritical':
+        return { label: 'Critical', color: '#d32f2f' }
+      case 'SeverityHigh':
+        return { label: 'High', color: '#f57c00' }
+      case 'SeverityWarning':
+        return { label: 'Warning', color: '#fbc02d' }
+      case 'SeverityInfo':
+      default:
+        return { label: 'Info', color: '#1976d2' }
+    }
+  }
+
+  /*
    * Gets the header to display above the list to give a quick overview
    * on if they are viewing alerts for all services or only their
    * favorited services.
@@ -305,28 +330,44 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
             infiniteScroll
             onSelectionChange={(selected) => setSelectedCount(selected.length)}
             headerNote={getHeaderNote()}
-            mapDataNode={(a) => ({
-              id: a.id,
-              status: getListItemStatus(a.status),
-              title: `${a.alertID}: ${a.status
-                .toUpperCase()
-                .replace('STATUS', '')}`,
-              subText:
-                (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-              action: (
-                <ListItemText
-                  className={classes.alertTimeContainer}
-                  secondary={
-                    <Time
-                      time={a.createdAt}
-                      format={fullTime ? 'default' : 'relative'}
+            mapDataNode={(a) => {
+              const severityInfo = getSeverityDisplay(a.severity)
+              return {
+                id: a.id,
+                status: getListItemStatus(a.status),
+                title: `${a.alertID}: ${a.status
+                  .toUpperCase()
+                  .replace('STATUS', '')}`,
+                subText: (
+                  <span>
+                    <Chip
+                      label={severityInfo.label}
+                      size='small'
+                      style={{
+                        backgroundColor: severityInfo.color,
+                        color: 'white',
+                        marginRight: '8px',
+                        fontWeight: 'bold',
+                      }}
                     />
-                  }
-                />
-              ),
-              url: `/services/${a.service.id}/alerts/${a.id}`,
-              selectable: a.status !== 'StatusClosed',
-            })}
+                    {(props.serviceID ? '' : a.service.name + ': ') + a.summary}
+                  </span>
+                ),
+                action: (
+                  <ListItemText
+                    className={classes.alertTimeContainer}
+                    secondary={
+                      <Time
+                        time={a.createdAt}
+                        format={fullTime ? 'default' : 'relative'}
+                      />
+                    }
+                  />
+                ),
+                url: `/services/${a.service.id}/alerts/${a.id}`,
+                selectable: a.status !== 'StatusClosed',
+              }
+            }}
             variables={variables}
             secondaryActions={
               props?.secondaryActions ?? (

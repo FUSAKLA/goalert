@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, TextField } from '@mui/material'
+import { Grid, TextField, MenuItem } from '@mui/material'
 import { FormField } from '../../../forms'
 
 export function CreateAlertInfo(): React.JSX.Element {
@@ -23,6 +23,21 @@ export function CreateAlertInfo(): React.JSX.Element {
           name='details'
           component={TextField}
         />
+      </Grid>
+      <Grid item xs={12}>
+        <FormField
+          fullWidth
+          select
+          label='Severity'
+          name='severity'
+          required
+          component={TextField}
+        >
+          <MenuItem value='SeverityInfo'>Info</MenuItem>
+          <MenuItem value='SeverityWarning'>Warning</MenuItem>
+          <MenuItem value='SeverityHigh'>High</MenuItem>
+          <MenuItem value='SeverityCritical'>Critical</MenuItem>
+        </FormField>
       </Grid>
     </Grid>
   )

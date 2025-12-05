@@ -124,6 +124,7 @@ type ComplexityRoot struct {
 		RecentEvents         func(childComplexity int, input *AlertRecentEventsOptions) int
 		Service              func(childComplexity int) int
 		ServiceID            func(childComplexity int) int
+		Severity             func(childComplexity int) int
 		State                func(childComplexity int) int
 		Status               func(childComplexity int) int
 		Summary              func(childComplexity int) int
@@ -898,6 +899,7 @@ type AlertResolver interface {
 	Status(ctx context.Context, obj *alert.Alert) (AlertStatus, error)
 
 	Service(ctx context.Context, obj *alert.Alert) (*service.Service, error)
+	Severity(ctx context.Context, obj *alert.Alert) (AlertSeverity, error)
 	State(ctx context.Context, obj *alert.Alert) (*alert.State, error)
 	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
 	PendingNotifications(ctx context.Context, obj *alert.Alert) ([]AlertPendingNotification, error)
@@ -1289,6 +1291,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Alert.ServiceID(childComplexity), true
+	case "Alert.severity":
+		if e.complexity.Alert.Severity == nil {
+			break
+		}
+
+		return e.complexity.Alert.Severity(childComplexity), true
 	case "Alert.state":
 		if e.complexity.Alert.State == nil {
 			break
@@ -6727,6 +6735,35 @@ func (ec *executionContext) fieldContext_Alert_service(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Alert_severity(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Alert_severity,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Alert().Severity(ctx, obj)
+		},
+		nil,
+		ec.marshalNAlertSeverity2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Alert_severity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type AlertSeverity does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Alert_state(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -7028,6 +7065,8 @@ func (ec *executionContext) fieldContext_AlertConnection_nodes(_ context.Context
 				return ec.fieldContext_Alert_serviceID(ctx, field)
 			case "service":
 				return ec.fieldContext_Alert_service(ctx, field)
+			case "severity":
+				return ec.fieldContext_Alert_severity(ctx, field)
 			case "state":
 				return ec.fieldContext_Alert_state(ctx, field)
 			case "recentEvents":
@@ -13791,6 +13830,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlerts(ctx context.Conte
 				return ec.fieldContext_Alert_serviceID(ctx, field)
 			case "service":
 				return ec.fieldContext_Alert_service(ctx, field)
+			case "severity":
+				return ec.fieldContext_Alert_severity(ctx, field)
 			case "state":
 				return ec.fieldContext_Alert_state(ctx, field)
 			case "recentEvents":
@@ -13905,6 +13946,8 @@ func (ec *executionContext) fieldContext_Mutation_escalateAlerts(ctx context.Con
 				return ec.fieldContext_Alert_serviceID(ctx, field)
 			case "service":
 				return ec.fieldContext_Alert_service(ctx, field)
+			case "severity":
+				return ec.fieldContext_Alert_severity(ctx, field)
 			case "state":
 				return ec.fieldContext_Alert_state(ctx, field)
 			case "recentEvents":
@@ -14183,6 +14226,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 				return ec.fieldContext_Alert_serviceID(ctx, field)
 			case "service":
 				return ec.fieldContext_Alert_service(ctx, field)
+			case "severity":
+				return ec.fieldContext_Alert_severity(ctx, field)
 			case "state":
 				return ec.fieldContext_Alert_state(ctx, field)
 			case "recentEvents":
@@ -17308,6 +17353,8 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 				return ec.fieldContext_Alert_serviceID(ctx, field)
 			case "service":
 				return ec.fieldContext_Alert_service(ctx, field)
+			case "severity":
+				return ec.fieldContext_Alert_severity(ctx, field)
 			case "state":
 				return ec.fieldContext_Alert_state(ctx, field)
 			case "recentEvents":
@@ -26627,7 +26674,7 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		asMap["sort"] = "statusID"
 	}
 
-	fieldsInOrder := [...]string{"filterByStatus", "filterByServiceID", "search", "first", "after", "favoritesOnly", "includeNotified", "omit", "sort", "createdBefore", "notCreatedBefore", "closedBefore", "notClosedBefore"}
+	fieldsInOrder := [...]string{"filterByStatus", "filterByServiceID", "filterBySeverity", "search", "first", "after", "favoritesOnly", "includeNotified", "omit", "sort", "createdBefore", "notCreatedBefore", "closedBefore", "notClosedBefore"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26648,6 +26695,13 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 				return it, err
 			}
 			it.FilterByServiceID = data
+		case "filterBySeverity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterBySeverity"))
+			data, err := ec.unmarshalOAlertSeverity2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FilterBySeverity = data
 		case "search":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -27066,7 +27120,7 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"summary", "details", "serviceID", "sanitize", "dedup", "meta"}
+	fieldsInOrder := [...]string{"summary", "details", "serviceID", "sanitize", "dedup", "severity", "meta"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27108,6 +27162,13 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 				return it, err
 			}
 			it.Dedup = data
+		case "severity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
+			data, err := ec.unmarshalOAlertSeverity2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Severity = data
 		case "meta":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("meta"))
 			data, err := ec.unmarshalOAlertMetadataInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertMetadataInputᚄ(ctx, v)
@@ -31015,6 +31076,42 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Alert_service(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "severity":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_severity(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -40703,6 +40800,16 @@ func (ec *executionContext) marshalNAlertPendingNotification2ᚕgithubᚗcomᚋt
 	return ret
 }
 
+func (ec *executionContext) unmarshalNAlertSeverity2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx context.Context, v any) (AlertSeverity, error) {
+	var res AlertSeverity
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAlertSeverity2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx context.Context, sel ast.SelectionSet, v AlertSeverity) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNAlertStats2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStats(ctx context.Context, sel ast.SelectionSet, v AlertStats) graphql.Marshaler {
 	return ec._AlertStats(ctx, sel, &v)
 }
@@ -44654,6 +44761,87 @@ func (ec *executionContext) unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtarget�
 }
 
 func (ec *executionContext) marshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, sel ast.SelectionSet, v *AlertSearchSort) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOAlertSeverity2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverityᚄ(ctx context.Context, v any) ([]AlertSeverity, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]AlertSeverity, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNAlertSeverity2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOAlertSeverity2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverityᚄ(ctx context.Context, sel ast.SelectionSet, v []AlertSeverity) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlertSeverity2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOAlertSeverity2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx context.Context, v any) (*AlertSeverity, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(AlertSeverity)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAlertSeverity2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSeverity(ctx context.Context, sel ast.SelectionSet, v *AlertSeverity) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

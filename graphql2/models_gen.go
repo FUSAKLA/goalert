@@ -76,6 +76,7 @@ type AlertRecentEventsOptions struct {
 type AlertSearchOptions struct {
 	FilterByStatus    []AlertStatus    `json:"filterByStatus,omitempty"`
 	FilterByServiceID []string         `json:"filterByServiceID,omitempty"`
+	FilterBySeverity  []AlertSeverity  `json:"filterBySeverity,omitempty"`
 	Search            *string          `json:"search,omitempty"`
 	First             *int             `json:"first,omitempty"`
 	After             *string          `json:"after,omitempty"`
@@ -193,8 +194,10 @@ type CreateAlertInput struct {
 	// Dedup allows setting a unique value to de-duplicate multiple alerts.
 	//
 	// It can also be used to close an alert using closeMatchingAlert mutation.
-	Dedup *string              `json:"dedup,omitempty"`
-	Meta  []AlertMetadataInput `json:"meta,omitempty"`
+	Dedup *string `json:"dedup,omitempty"`
+	// Severity level of the alert.
+	Severity *AlertSeverity       `json:"severity,omitempty"`
+	Meta     []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type CreateBasicAuthInput struct {
@@ -1051,6 +1054,65 @@ func (e *AlertSearchSort) UnmarshalJSON(b []byte) error {
 }
 
 func (e AlertSearchSort) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AlertSeverity string
+
+const (
+	AlertSeveritySeverityInfo     AlertSeverity = "SeverityInfo"
+	AlertSeveritySeverityWarning  AlertSeverity = "SeverityWarning"
+	AlertSeveritySeverityHigh     AlertSeverity = "SeverityHigh"
+	AlertSeveritySeverityCritical AlertSeverity = "SeverityCritical"
+)
+
+var AllAlertSeverity = []AlertSeverity{
+	AlertSeveritySeverityInfo,
+	AlertSeveritySeverityWarning,
+	AlertSeveritySeverityHigh,
+	AlertSeveritySeverityCritical,
+}
+
+func (e AlertSeverity) IsValid() bool {
+	switch e {
+	case AlertSeveritySeverityInfo, AlertSeveritySeverityWarning, AlertSeveritySeverityHigh, AlertSeveritySeverityCritical:
+		return true
+	}
+	return false
+}
+
+func (e AlertSeverity) String() string {
+	return string(e)
+}
+
+func (e *AlertSeverity) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertSeverity(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertSeverity", str)
+	}
+	return nil
+}
+
+func (e AlertSeverity) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AlertSeverity) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AlertSeverity) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

@@ -290,6 +290,18 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 				s.Status = append(s.Status, alert.StatusClosed)
 			}
 		}
+		for _, f := range opts.FilterBySeverity {
+			switch f {
+			case graphql2.AlertSeveritySeverityInfo:
+				s.Severity = append(s.Severity, alert.SeverityInfo)
+			case graphql2.AlertSeveritySeverityWarning:
+				s.Severity = append(s.Severity, alert.SeverityWarning)
+			case graphql2.AlertSeveritySeverityHigh:
+				s.Severity = append(s.Severity, alert.SeverityHigh)
+			case graphql2.AlertSeveritySeverityCritical:
+				s.Severity = append(s.Severity, alert.SeverityCritical)
+			}
+		}
 		if opts.Sort != nil {
 			switch *opts.Sort {
 			case graphql2.AlertSearchSortStatusID:
@@ -358,6 +370,20 @@ func (a *Alert) Status(ctx context.Context, raw *alert.Alert) (graphql2.AlertSta
 	return "", errors.New("unknown alert status " + string(raw.Status))
 }
 
+func (a *Alert) Severity(ctx context.Context, raw *alert.Alert) (graphql2.AlertSeverity, error) {
+	switch raw.Severity {
+	case alert.SeverityInfo:
+		return graphql2.AlertSeveritySeverityInfo, nil
+	case alert.SeverityWarning:
+		return graphql2.AlertSeveritySeverityWarning, nil
+	case alert.SeverityHigh:
+		return graphql2.AlertSeveritySeverityHigh, nil
+	case alert.SeverityCritical:
+		return graphql2.AlertSeveritySeverityCritical, nil
+	}
+	return "", errors.New("unknown alert severity " + string(raw.Severity))
+}
+
 func (a *Alert) AlertID(ctx context.Context, raw *alert.Alert) (int, error) {
 	return raw.ID, nil
 }
@@ -400,10 +426,24 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		ServiceID: input.ServiceID,
 		Summary:   input.Summary,
 		Status:    alert.StatusTriggered,
+		Severity:  alert.SeverityInfo,
 	}
 
 	if input.Details != nil {
 		a.Details = *input.Details
+	}
+
+	if input.Severity != nil {
+		switch *input.Severity {
+		case graphql2.AlertSeveritySeverityInfo:
+			a.Severity = alert.SeverityInfo
+		case graphql2.AlertSeveritySeverityWarning:
+			a.Severity = alert.SeverityWarning
+		case graphql2.AlertSeveritySeverityHigh:
+			a.Severity = alert.SeverityHigh
+		case graphql2.AlertSeveritySeverityCritical:
+			a.Severity = alert.SeverityCritical
+		}
 	}
 
 	if input.Sanitize != nil && *input.Sanitize {

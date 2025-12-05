@@ -22,6 +22,7 @@ export interface Value {
   summary: string
   details: string
   serviceIDs: string[]
+  severity: string
 }
 
 const pluralize = (num: number): string => (num !== 1 ? 's' : '')
@@ -49,12 +50,13 @@ export default function CreateAlertDialog(props: {
     summary: '',
     details: '',
     serviceIDs: serviceID ? [serviceID] : [],
+    severity: 'SeverityInfo',
   })
   const [mutate, { data, loading, error }, getSvcID] = useCreateAlerts(value)
 
   const fieldErrs = fieldErrors(error)
   const hasValidationError = fieldErrs.some((e) =>
-    ['summary', 'details'].includes(e.field),
+    ['summary', 'details', 'severity'].includes(e.field),
   )
 
   useEffect(() => {

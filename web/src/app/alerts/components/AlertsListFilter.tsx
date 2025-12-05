@@ -7,6 +7,7 @@ import Hidden from '@mui/material/Hidden'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import Switch from '@mui/material/Switch'
 import Grid from '@mui/material/Grid'
+import TextField from '@mui/material/TextField'
 import makeStyles from '@mui/styles/makeStyles'
 import { Theme } from '@mui/material/styles'
 import { styles as globalStyles } from '../../styles/materialStyles'
@@ -14,6 +15,9 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import FormControl from '@mui/material/FormControl'
+import FormLabel from '@mui/material/FormLabel'
+import FormGroup from '@mui/material/FormGroup'
+import Checkbox from '@mui/material/Checkbox'
 import classnames from 'classnames'
 import { useURLParam, useResetURLParams } from '../../actions'
 import { useIsWidthDown } from '../../util/useWidth'
@@ -56,7 +60,21 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
     'fullTime',
     false,
   )
-  const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
+  const [severityFilter, setSeverityFilter] = useURLParam<string[]>(
+    'severity',
+    [],
+  )
+  const [serviceNameFilter, setServiceNameFilter] = useURLParam<string>(
+    'serviceName',
+    '',
+  )
+  const resetAll = useResetURLParams(
+    'filter',
+    'allServices',
+    'fullTime',
+    'severity',
+    'serviceName',
+  ) // don't reset search param
   const isMobile = useIsWidthDown('md')
   const gridClasses = classnames(
     classes.grid,
@@ -70,6 +88,14 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
 
   function handleCloseFilters(): void {
     setShow(false)
+  }
+
+  function handleSeverityChange(severity: string, checked: boolean): void {
+    if (checked) {
+      setSeverityFilter([...severityFilter, severity])
+    } else {
+      setSeverityFilter(severityFilter.filter((s) => s !== severity))
+    }
   }
 
   function renderFilters(): React.JSX.Element {
@@ -92,6 +118,16 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
 
     const content = (
       <Grid container spacing={2} className={gridClasses}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label='Filter by Service Name'
+            placeholder='Search service...'
+            value={serviceNameFilter}
+            onChange={(e) => setServiceNameFilter(e.target.value)}
+            size='small'
+          />
+        </Grid>
         <Grid item xs={12} className={classes.gridItem}>
           <FormControl>
             {favoritesFilter}
@@ -106,6 +142,61 @@ function AlertsListFilter(props: AlertsListFilterProps): React.JSX.Element {
               }
               label='Show full timestamps'
             />
+            <FormControl component='fieldset' style={{ marginTop: '1em' }}>
+              <FormLabel component='legend'>Severity</FormLabel>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={severityFilter.includes('SeverityCritical')}
+                      onChange={(e) =>
+                        handleSeverityChange(
+                          'SeverityCritical',
+                          e.target.checked,
+                        )
+                      }
+                    />
+                  }
+                  label='Critical'
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={severityFilter.includes('SeverityHigh')}
+                      onChange={(e) =>
+                        handleSeverityChange('SeverityHigh', e.target.checked)
+                      }
+                    />
+                  }
+                  label='High'
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={severityFilter.includes('SeverityWarning')}
+                      onChange={(e) =>
+                        handleSeverityChange(
+                          'SeverityWarning',
+                          e.target.checked,
+                        )
+                      }
+                    />
+                  }
+                  label='Warning'
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={severityFilter.includes('SeverityInfo')}
+                      onChange={(e) =>
+                        handleSeverityChange('SeverityInfo', e.target.checked)
+                      }
+                    />
+                  }
+                  label='Info'
+                />
+              </FormGroup>
+            </FormControl>
             {isMobile && (
               <RadioGroup
                 aria-label='Alert Status Filters'

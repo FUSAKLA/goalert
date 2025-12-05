@@ -25,6 +25,7 @@ type Alert struct {
 	ServiceID string    `json:"service_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Dedup     *DedupID  `json:"dedup"`
+	Severity  Severity  `json:"severity"`
 }
 
 // DedupKey will return the de-duplication key for the alert.
@@ -45,7 +46,7 @@ func (a *Alert) DedupKey() *DedupID {
 }
 
 func (a *Alert) scanFrom(scanFn func(...interface{}) error) error {
-	return scanFn(&a.ID, &a.Summary, &a.Details, &a.ServiceID, &a.Source, &a.Status, &a.CreatedAt, &a.Dedup)
+	return scanFn(&a.ID, &a.Summary, &a.Details, &a.ServiceID, &a.Source, &a.Status, &a.CreatedAt, &a.Dedup, &a.Severity)
 }
 
 func (a Alert) Normalize() (*Alert, error) {
@@ -55,6 +56,9 @@ func (a Alert) Normalize() (*Alert, error) {
 	if string(a.Status) == "" {
 		a.Status = StatusTriggered
 	}
+	if string(a.Severity) == "" {
+		a.Severity = SeverityInfo
+	}
 	a.Summary = strings.ReplaceAll(a.Summary, "\n", " ")
 	a.Summary = strings.ReplaceAll(a.Summary, "  ", " ")
 
@@ -63,6 +67,7 @@ func (a Alert) Normalize() (*Alert, error) {
 		validate.Text("Details", a.Details, 0, MaxDetailsLength),
 		validate.OneOf("Source", a.Source, SourceManual, SourceGrafana, SourceSite24x7, SourcePrometheusAlertmanager, SourceEmail, SourceGeneric, SourceUniversal),
 		validate.OneOf("Status", a.Status, StatusTriggered, StatusActive, StatusClosed),
+		validate.OneOf("Severity", a.Severity, SeverityInfo, SeverityWarning, SeverityHigh, SeverityCritical),
 		validate.UUID("ServiceID", a.ServiceID),
 	)
 	if err != nil {

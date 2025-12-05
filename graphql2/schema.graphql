@@ -438,6 +438,11 @@ input CreateAlertInput {
   """
   dedup: String
 
+  """
+  Severity level of the alert.
+  """
+  severity: AlertSeverity
+
   meta: [AlertMetadataInput!]
 }
 
@@ -951,6 +956,7 @@ input UserSearchOptions {
 input AlertSearchOptions {
   filterByStatus: [AlertStatus!]
   filterByServiceID: [ID!]
+  filterBySeverity: [AlertSeverity!]
   search: String = ""
   first: Int = 15
   after: String = ""
@@ -1005,6 +1011,7 @@ type Alert {
   createdAt: ISOTimestamp!
   serviceID: ID!
   service: Service
+  severity: AlertSeverity!
 
   """
   Escalation Policy State for the alert.
@@ -1232,6 +1239,13 @@ enum AlertStatus {
   StatusAcknowledged
   StatusClosed
   StatusUnacknowledged
+}
+
+enum AlertSeverity {
+  SeverityInfo
+  SeverityWarning
+  SeverityHigh
+  SeverityCritical
 }
 
 type Target {

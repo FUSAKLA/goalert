@@ -58,7 +58,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		logDB: logDB,
 
 		insert: p(`
-			INSERT INTO alerts (summary, details, service_id, source, status, dedup_key) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
+			INSERT INTO alerts (summary, details, service_id, source, status, dedup_key, severity) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created_at
 		`),
 		update: p("UPDATE alerts SET status = $2 WHERE id = $1"),
 		logs:   p("SELECT timestamp, event, message FROM alert_logs WHERE alert_id = $1"),
@@ -72,15 +72,16 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				a.source,
 				a.status,
 				created_at,
-				a.dedup_key
+				a.dedup_key,
+				a.severity
 			FROM alerts a
 			WHERE a.id = ANY ($1)
 		`),
 		createUpdNew: p(`
 			WITH existing as (
-				SELECT id, summary, details, status, source, created_at, false
+				SELECT id, summary, details, status, source, created_at, false, severity
 				FROM alerts
-				WHERE service_id = $3 AND dedup_key = $5
+				WHERE service_id = $3 AND dedup_key = $6
 			), to_insert as (
 				SELECT 1
 				EXCEPT
@@ -88,11 +89,11 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				FROM existing
 			), inserted as (
 				INSERT INTO alerts (
-					summary, details, service_id, source, dedup_key
+					summary, details, service_id, source, dedup_key, severity
 				)
-				SELECT $1, $2, $3, $4, $5
+				SELECT $1, $2, $3, $4, $6, $5
 				FROM to_insert
-				RETURNING id, summary, details, status, source, created_at, true
+				RETURNING id, summary, details, status, source, created_at, true, severity
 			)
 			SELECT * FROM existing
 			UNION
@@ -131,11 +132,11 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 				$2 > status
 			) returning id
 		`),
-		updateByIDAndStatus: p(`			
+		updateByIDAndStatus: p(`
 			UPDATE alerts
 			SET	status = $1
 			WHERE
-				id = ANY ($2) AND 
+				id = ANY ($2) AND
 				($1 > status)
 			RETURNING id
 		`),
@@ -154,7 +155,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		`),
 
 		epState: p(`
-			SELECT alert_id, last_escalation, loop_count, escalation_policy_step_number 
+			SELECT alert_id, last_escalation, loop_count, escalation_policy_step_number
 			FROM escalation_policy_state
 			WHERE alert_id = ANY ($1)
 		`),
@@ -500,7 +501,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, err
 func (s *Store) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
 	var meta alertlog.CreatedMetaData
 
-	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
+	row := tx.StmtContext(ctx, s.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey(), a.Severity)
 	err := row.Scan(&a.ID, &a.CreatedAt)
 	if err != nil {
 		return nil, nil, err
@@ -554,8 +555,8 @@ func (s *Store) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Al
 	case StatusTriggered:
 		var m alertlog.CreatedMetaData
 		err = tx.Stmt(s.createUpdNew).
-			QueryRowContext(ctx, n.Summary, n.Details, n.ServiceID, n.Source, n.DedupKey()).
-			Scan(&n.ID, &n.Summary, &n.Details, &n.Status, &n.Source, &n.CreatedAt, &inserted)
+			QueryRowContext(ctx, n.Summary, n.Details, n.ServiceID, n.Source, n.Severity, n.DedupKey()).
+			Scan(&n.ID, &n.Summary, &n.Details, &n.Status, &n.Source, &n.CreatedAt, &inserted, &n.Severity)
 		if !inserted {
 			logType = alertlog.TypeDuplicateSupressed
 		} else {

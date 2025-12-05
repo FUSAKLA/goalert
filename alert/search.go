@@ -38,6 +38,9 @@ type SearchOptions struct {
 	// Status, if specified, will restrict alerts to those with a matching status.
 	Status []Status `json:"t,omitempty"`
 
+	// Severity, if specified, will restrict alerts to those with a matching severity.
+	Severity []Severity `json:"x,omitempty"`
+
 	// ServiceFilter, if specified, will restrict alerts to those with a matching ServiceID on IDs, if valid.
 	ServiceFilter IDFilter `json:"v,omitempty"`
 
@@ -99,7 +102,8 @@ var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Hel
 		a.source,
 		a.status,
 		created_at,
-		a.dedup_key
+		a.dedup_key,
+		a.severity
 	FROM alerts a
 	WHERE true
 	{{ if .Omit }}
@@ -112,6 +116,9 @@ var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Hel
 	{{ end }}
 	{{ if .Status }}
 		AND a.status = any(:status::enum_alert_status[])
+	{{ end }}
+	{{ if .Severity }}
+		AND a.severity = any(:severity::enum_alert_severity[])
 	{{ end }}
 	{{ if .ServiceFilter.Valid }}
 		AND (a.service_id = any(:services)
@@ -141,10 +148,10 @@ var searchTemplate = template.Must(template.New("alert-search").Funcs(search.Hel
 		)
 	{{ end }}
 	{{ if not .ClosedBefore.IsZero }}
-		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at < :closedBeforeTime) 
+		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at < :closedBeforeTime)
 	{{ end }}
 	{{ if not .NotClosedBefore.IsZero }}
-		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at > :notClosedBeforeTime) 
+		AND EXISTS (select 1 from alert_metrics where alert_id = a.id AND closed_at > :notClosedBeforeTime)
 	{{ end }}
 	ORDER BY {{.SortStr}}
 	LIMIT {{.Limit}}
@@ -173,6 +180,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, 1001),
 		validate.Range("Status", len(opts.Status), 0, 3),
+		validate.Range("Severity", len(opts.Severity), 0, 4),
 		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
 		validate.OneOf("Sort", opts.Sort, SortModeStatusID, SortModeDateID, SortModeDateIDReverse),
@@ -186,6 +194,13 @@ func (opts renderData) Normalize() (*renderData, error) {
 
 	for i, stat := range opts.Status {
 		err = validate.OneOf("Status["+strconv.Itoa(i)+"]", stat, StatusTriggered, StatusActive, StatusClosed)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i, sev := range opts.Severity {
+		err = validate.OneOf("Severity["+strconv.Itoa(i)+"]", sev, SeverityInfo, SeverityWarning, SeverityHigh, SeverityCritical)
 		if err != nil {
 			return nil, err
 		}
@@ -206,10 +221,16 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		stat[i] = string(opts.Status[i])
 	}
 
+	sev := make(sqlutil.StringArray, len(opts.Severity))
+	for i := range opts.Severity {
+		sev[i] = string(opts.Severity[i])
+	}
+
 	return []sql.NamedArg{
 		sql.Named("search", opts.Search),
 		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
+		sql.Named("severity", sev),
 		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
 		sql.Named("svcNameMatchIDs", sqlutil.UUIDArray(opts.serviceNameIDs)),
 		sql.Named("afterID", opts.After.ID),
