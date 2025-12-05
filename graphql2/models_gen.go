@@ -19,6 +19,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/mattermost"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -543,6 +544,18 @@ type LinkAccountInfo struct {
 	UserDetails    string       `json:"userDetails"`
 	AlertID        *int         `json:"alertID,omitempty"`
 	AlertNewStatus *AlertStatus `json:"alertNewStatus,omitempty"`
+}
+
+type MattermostChannelConnection struct {
+	Nodes    []mattermost.Channel `json:"nodes"`
+	PageInfo *PageInfo            `json:"pageInfo"`
+}
+
+type MattermostChannelSearchOptions struct {
+	First  *int     `json:"first,omitempty"`
+	After  *string  `json:"after,omitempty"`
+	Search *string  `json:"search,omitempty"`
+	Omit   []string `json:"omit,omitempty"`
 }
 
 type MessageLogConnection struct {

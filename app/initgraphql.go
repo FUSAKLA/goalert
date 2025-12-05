@@ -33,6 +33,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		LimitStore:          app.LimitStore,
 		NotificationStore:   app.NotificationStore,
 		SlackStore:          app.slackChan,
+		MattermostStore:     app.mattermostChan,
 		HeartbeatStore:      app.HeartbeatStore,
 		NoticeStore:         app.NoticeStore,
 		Twilio:              app.twilioConfig,

@@ -77,6 +77,8 @@ models:
     model: github.com/target/goalert/notification/slack.Channel
   SlackUserGroup:
     model: github.com/target/goalert/notification/slack.UserGroup
+  MattermostChannel:
+    model: github.com/target/goalert/notification/mattermost.Channel
   HeartbeatMonitor:
     model: github.com/target/goalert/heartbeat.Monitor
   HeartbeatMonitorState:

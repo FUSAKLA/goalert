@@ -35,6 +35,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/mattermost"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -84,6 +85,7 @@ type App struct {
 	ConfigStore       *config.Store
 	LimitStore        *limit.Store
 	SlackStore        *slack.ChannelSender
+	MattermostStore   *mattermost.ChannelSender
 	HeartbeatStore    *heartbeat.Store
 	NoticeStore       *notice.Store
 	APIKeyStore       *apikey.Store

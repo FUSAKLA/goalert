@@ -102,6 +102,12 @@ type Config struct {
 		InteractiveMessages bool   `info:"Enable interactive messages (e.g. buttons)."`
 	}
 
+	Mattermost struct {
+		Enable bool `public:"true" info:"Enables Mattermost notifications."`
+
+		InteractiveMessages bool `info:"Enable interactive messages (e.g. buttons)."`
+	}
+
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 

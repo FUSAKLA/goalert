@@ -156,6 +156,23 @@ type SlackUserGroupConnection {
   pageInfo: PageInfo!
 }
 
+input MattermostChannelSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type MattermostChannel {
+  id: ID!
+  name: String!
+}
+
+type MattermostChannelConnection {
+  nodes: [MattermostChannel!]!
+  pageInfo: PageInfo!
+}
+
 input SlackChannelSearchOptions {
   first: Int = 15
   after: String = ""
@@ -1264,6 +1281,7 @@ enum TargetType {
   notificationChannel
   slackChannel
   slackUserGroup
+  mattermostChannel
   notificationPolicy
   rotation
   service

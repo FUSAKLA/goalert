@@ -30,6 +30,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/mattermost"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -451,6 +452,16 @@ type ComplexityRoot struct {
 		AlertID        func(childComplexity int) int
 		AlertNewStatus func(childComplexity int) int
 		UserDetails    func(childComplexity int) int
+	}
+
+	MattermostChannel struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
+	MattermostChannelConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	MessageLogConnection struct {
@@ -2503,6 +2514,32 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.LinkAccountInfo.UserDetails(childComplexity), true
+
+	case "MattermostChannel.id":
+		if e.complexity.MattermostChannel.ID == nil {
+			break
+		}
+
+		return e.complexity.MattermostChannel.ID(childComplexity), true
+	case "MattermostChannel.name":
+		if e.complexity.MattermostChannel.Name == nil {
+			break
+		}
+
+		return e.complexity.MattermostChannel.Name(childComplexity), true
+
+	case "MattermostChannelConnection.nodes":
+		if e.complexity.MattermostChannelConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.MattermostChannelConnection.Nodes(childComplexity), true
+	case "MattermostChannelConnection.pageInfo":
+		if e.complexity.MattermostChannelConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.MattermostChannelConnection.PageInfo(childComplexity), true
 
 	case "MessageLogConnection.nodes":
 		if e.complexity.MessageLogConnection.Nodes == nil {
@@ -4940,6 +4977,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputLabelKeySearchOptions,
 		ec.unmarshalInputLabelSearchOptions,
 		ec.unmarshalInputLabelValueSearchOptions,
+		ec.unmarshalInputMattermostChannelSearchOptions,
 		ec.unmarshalInputMessageLogSearchOptions,
 		ec.unmarshalInputOnCallNotificationRuleInput,
 		ec.unmarshalInputRotationSearchOptions,
@@ -12990,6 +13028,134 @@ func (ec *executionContext) fieldContext_LinkAccountInfo_alertNewStatus(_ contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AlertStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MattermostChannel_id(ctx context.Context, field graphql.CollectedField, obj *mattermost.Channel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MattermostChannel_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MattermostChannel_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MattermostChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MattermostChannel_name(ctx context.Context, field graphql.CollectedField, obj *mattermost.Channel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MattermostChannel_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MattermostChannel_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MattermostChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MattermostChannelConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *MattermostChannelConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MattermostChannelConnection_nodes,
+		func(ctx context.Context) (any, error) {
+			return obj.Nodes, nil
+		},
+		nil,
+		ec.marshalNMattermostChannel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋmattermostᚐChannelᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MattermostChannelConnection_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MattermostChannelConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MattermostChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_MattermostChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MattermostChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MattermostChannelConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *MattermostChannelConnection) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MattermostChannelConnection_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MattermostChannelConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MattermostChannelConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -28785,6 +28951,64 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMattermostChannelSearchOptions(ctx context.Context, obj any) (MattermostChannelSearchOptions, error) {
+	var it MattermostChannelSearchOptions
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 15
+	}
+	if _, present := asMap["after"]; !present {
+		asMap["after"] = ""
+	}
+	if _, present := asMap["search"]; !present {
+		asMap["search"] = ""
+	}
+
+	fieldsInOrder := [...]string{"first", "after", "search", "omit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "first":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.First = data
+		case "after":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.After = data
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "omit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Omit = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMessageLogSearchOptions(ctx context.Context, obj any) (MessageLogSearchOptions, error) {
 	var it MessageLogSearchOptions
 	asMap := map[string]any{}
@@ -34563,6 +34787,94 @@ func (ec *executionContext) _LinkAccountInfo(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._LinkAccountInfo_alertID(ctx, field, obj)
 		case "alertNewStatus":
 			out.Values[i] = ec._LinkAccountInfo_alertNewStatus(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var mattermostChannelImplementors = []string{"MattermostChannel"}
+
+func (ec *executionContext) _MattermostChannel(ctx context.Context, sel ast.SelectionSet, obj *mattermost.Channel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mattermostChannelImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MattermostChannel")
+		case "id":
+			out.Values[i] = ec._MattermostChannel_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._MattermostChannel_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var mattermostChannelConnectionImplementors = []string{"MattermostChannelConnection"}
+
+func (ec *executionContext) _MattermostChannelConnection(ctx context.Context, sel ast.SelectionSet, obj *MattermostChannelConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mattermostChannelConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MattermostChannelConnection")
+		case "nodes":
+			out.Values[i] = ec._MattermostChannelConnection_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._MattermostChannelConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42525,6 +42837,54 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 		return graphql.Null
 	}
 	return ec._LabelConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMattermostChannel2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋmattermostᚐChannel(ctx context.Context, sel ast.SelectionSet, v mattermost.Channel) graphql.Marshaler {
+	return ec._MattermostChannel(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMattermostChannel2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋmattermostᚐChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []mattermost.Channel) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMattermostChannel2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋmattermostᚐChannel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNMessageLogConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageLogConnection(ctx context.Context, sel ast.SelectionSet, v MessageLogConnection) graphql.Marshaler {

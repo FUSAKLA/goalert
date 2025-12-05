@@ -738,6 +738,23 @@ export interface LinkAccountInfo {
   userDetails: string
 }
 
+export interface MattermostChannel {
+  id: string
+  name: string
+}
+
+export interface MattermostChannelConnection {
+  nodes: MattermostChannel[]
+  pageInfo: PageInfo
+}
+
+export interface MattermostChannelSearchOptions {
+  after?: null | string
+  first?: null | number
+  omit?: null | string[]
+  search?: null | string
+}
+
 export interface MessageLogConnection {
   nodes: DebugMessage[]
   pageInfo: PageInfo
@@ -1249,6 +1266,7 @@ export type TargetType =
   | 'escalationPolicy'
   | 'heartbeatMonitor'
   | 'integrationKey'
+  | 'mattermostChannel'
   | 'notificationChannel'
   | 'notificationPolicy'
   | 'notificationRule'
@@ -1666,6 +1684,8 @@ type ConfigID =
   | 'Slack.AccessToken'
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
+  | 'Mattermost.Enable'
+  | 'Mattermost.InteractiveMessages'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'

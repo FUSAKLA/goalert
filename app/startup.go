@@ -70,6 +70,7 @@ func (app *App) startup(ctx context.Context) error {
 		ctx, "Startup.Twilio", app.initTwilio)
 
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
+	app.initStartup(ctx, "Startup.Mattermost", app.initMattermost)
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
@@ -94,6 +95,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan)
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
+	app.DestRegistry.RegisterProvider(ctx, app.mattermostChan)
+	app.DestRegistry.RegisterProvider(ctx, app.mattermostChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx, app.httpClient))
 	if app.cfg.StubNotifiers {
 		app.DestRegistry.StubNotifiers()

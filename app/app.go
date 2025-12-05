@@ -36,6 +36,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/mattermost"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -96,7 +97,8 @@ type App struct {
 	twilioVoice  *twilio.Voice
 	twilioConfig *twilio.Config
 
-	slackChan *slack.ChannelSender
+	slackChan      *slack.ChannelSender
+	mattermostChan *mattermost.ChannelSender
 
 	ConfigStore *config.Store
 

@@ -160,6 +160,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("POST /api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
 
 	mux.HandleFunc("POST /api/v2/slack/message-action", app.slackChan.ServeMessageAction)
+	mux.HandleFunc("POST /api/v2/mattermost/message-action", app.mattermostChan.ServeMessageAction)
 
 	middleware = append(middleware,
 		httpRewrite(app.cfg.HTTPPrefix, "/v1/graphql2", "/api/graphql"),
