@@ -45,6 +45,9 @@ endif
 
 PREBUILT:=.prebuilt
 
+container-goalert-szn: bin/goalert-linux-amd64.tgz
+	docker build --platform linux/amd64 -t goalert:szn -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+
 container-goalert: bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
@@ -133,22 +136,22 @@ $(BIN_DIR)/windows-amd64/goalert.exe: $(GO_DEPS) graphql2/mapconfig.go web/src/b
 
 
 
-$(BIN_DIR)/goalert-slack-email-sync: $(GO_DEPS) 
+$(BIN_DIR)/goalert-slack-email-sync: $(GO_DEPS)
 	go build  -o $@ ./cmd/goalert-slack-email-sync
 
-$(BIN_DIR)/darwin-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+$(BIN_DIR)/darwin-amd64/goalert-slack-email-sync: $(GO_DEPS)
 	GOOS=darwin GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
-$(BIN_DIR)/linux-amd64/goalert-slack-email-sync: $(GO_DEPS)  
+$(BIN_DIR)/linux-amd64/goalert-slack-email-sync: $(GO_DEPS)
 	GOOS=linux GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
-$(BIN_DIR)/linux-arm/goalert-slack-email-sync: $(GO_DEPS)  
+$(BIN_DIR)/linux-arm/goalert-slack-email-sync: $(GO_DEPS)
 	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
-$(BIN_DIR)/linux-arm64/goalert-slack-email-sync: $(GO_DEPS)  
+$(BIN_DIR)/linux-arm64/goalert-slack-email-sync: $(GO_DEPS)
 	GOOS=linux GOARCH=arm64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
-$(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)  
+$(BIN_DIR)/windows-amd64/goalert-slack-email-sync.exe: $(GO_DEPS)
 	GOOS=windows GOARCH=amd64 go build -trimpath  -o $@ ./cmd/goalert-slack-email-sync
 
 
