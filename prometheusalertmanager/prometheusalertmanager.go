@@ -91,11 +91,14 @@ type postBody struct {
 	CommonLabels struct {
 		Instance  string
 		AlertName string `json:"alertname"`
+		Severity  string
 	}
 
 	CommonAnnotations struct {
-		Summary string
-		Details string
+		Title       string
+		Summary     string
+		Description string
+		Details     string
 	}
 }
 type postBodyAlert struct {
@@ -105,7 +108,9 @@ type postBodyAlert struct {
 	}
 	Annotations struct {
 		Summary string
+		Title   string
 		Details string
+		Description string
 	}
 	GeneratorURL string
 }
@@ -113,6 +118,9 @@ type postBodyAlert struct {
 func (a postBodyAlert) Summary() string {
 	if a.Annotations.Summary != "" {
 		return a.Annotations.Summary
+	}
+	if a.Annotations.Title != "" {
+		return a.Annotations.Title
 	}
 
 	return a.Labels.AlertName + " " + a.Labels.Instance
@@ -128,12 +136,18 @@ func (a postBodyAlert) Details() string {
 	if a.Annotations.Details != "" {
 		return a.Annotations.Details + a.gen()
 	}
+	if a.Annotations.Description != "" {
+		return a.Annotations.Description + a.gen()
+	}
 
 	return a.Summary() + a.gen()
 }
 func (b postBody) Summary() string {
 	if b.CommonAnnotations.Summary != "" {
 		return b.CommonAnnotations.Summary
+	}
+	if b.CommonAnnotations.Title != "" {
+		return b.CommonAnnotations.Title
 	}
 	if b.CommonLabels.AlertName == "" {
 		// different alerts
@@ -160,6 +174,8 @@ func (b postBody) Details(payload string) string {
 	}
 	if b.CommonAnnotations.Details != "" {
 		s.WriteString(b.CommonAnnotations.Details + "\n\n")
+	} else if b.CommonAnnotations.Description != "" {
+		s.WriteString(b.CommonAnnotations.Description + "\n\n")
 	} else {
 		for _, a := range b.Alerts {
 			s.WriteString(a.Details() + "\n\n")
@@ -219,12 +235,16 @@ func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Sto
 		if err == nil {
 			data = buf.Bytes()
 		}
-
+		var alertSeverity alert.Severity
+		if err := alertSeverity.Scan(&alertSeverity); err != nil {
+			log.Logf(ctx, "unknown severity %s, using %s", body.CommonLabels.Severity, alertSeverity)
+		}
 		summary := validate.SanitizeText(body.Summary(), alert.MaxSummaryLength)
 		msg := &alert.Alert{
 			Summary:   summary,
 			Details:   validate.SanitizeText(body.Details(string(data)), alert.MaxDetailsLength),
 			Status:    status,
+			Severity:  alertSeverity,
 			Source:    alert.SourcePrometheusAlertmanager,
 			ServiceID: serviceID,
 			Dedup:     alert.NewUserDedup(summary),

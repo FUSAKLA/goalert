@@ -7,7 +7,7 @@ CREATE TYPE enum_alert_severity AS ENUM (
     'critical'
 );
 
-ALTER TABLE alerts ADD COLUMN severity enum_alert_severity NOT NULL DEFAULT 'info';
+ALTER TABLE alerts ADD COLUMN severity enum_alert_severity NOT NULL DEFAULT 'critical';
 
 -- +migrate Down
 
