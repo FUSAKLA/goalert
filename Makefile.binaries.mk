@@ -46,7 +46,8 @@ endif
 PREBUILT:=.prebuilt
 
 container-goalert-szn: bin/goalert-linux-amd64.tgz
-	docker build --platform linux/amd64 -t goalert:szn -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+	docker build --platform linux/amd64 -t docker.io/fusakla/goalert:szn -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
+	docker push docker.io/fusakla/goalert:szn
 
 container-goalert: bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
