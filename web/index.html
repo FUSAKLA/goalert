@@ -12,6 +12,8 @@
 
     <title>{{ .ApplicationName }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#CC0000" />
+    <link rel="manifest" href="{{ .Prefix }}/static/manifest.json" />
     <link rel="preconnect" href="https://gravatar.com" />
     <link href="{{ .Prefix }}/static/app.css" rel="stylesheet" />
     <link
@@ -153,5 +155,15 @@
     {{- if .ExtraJS }}
       <script src="{{ .Prefix }}{{ .ExtraJS }}"></script>
     {{- end }}
+    <script nonce="{{.Nonce}}">
+      // Register service worker for PWA support
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('{{ .Prefix }}/sw.js').then(function(reg) {
+          console.log('GoAlert: Service worker registered for scope:', reg.scope);
+        }).catch(function(error) {
+          console.log('GoAlert: Service worker registration failed:', error);
+        });
+      }
+    </script>
   </body>
 </html>

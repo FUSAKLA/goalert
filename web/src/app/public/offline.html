@@ -1,0 +1,106 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GoAlert - Offline</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #fefefe;
+        color: #171717;
+      }
+      .container {
+        text-align: center;
+        padding: 2rem;
+        max-width: 600px;
+      }
+      h1 {
+        color: #cc0000;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+      .icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 2rem;
+      }
+      .icon svg {
+        width: 100%;
+        height: 100%;
+      }
+      .action {
+        margin-top: 2rem;
+      }
+      button {
+        background-color: #cc0000;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #aa0000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">
+        <svg
+          viewBox="0 0 1200 1200"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g>
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M721 206H441C406.758 206 379 233.758 379 268V461H358V268C358 222.16 395.16 185 441 185H721C766.84 185 804 222.16 804 268V384.641H783V268C783 233.758 755.242 206 721 206ZM358 830V932C358 977.84 395.16 1015 441 1015H721C766.84 1015 804 977.84 804 932V792.641H783V932C783 966.242 755.242 994 721 994H441C406.758 994 379 966.242 379 932V830H358Z"
+              fill="#CC0000"
+            />
+            <path
+              d="M443.001 529.36L509.5 380.36L828.313 588.937L1068 560.5L900 702.5L443.001 529.36Z"
+              fill="#171717"
+            />
+            <path
+              d="M313 514.359L204 614.359L356.5 556.859L313 514.359Z"
+              fill="#171717"
+            />
+            <path
+              d="M1026 255L865.56 689.339L900 702.5L609 807.359L312.639 514.69L204 614.359L288 490.359L288.064 490.421L288.002 490.36L612.483 558.632L780.001 429.5L1026 255Z"
+              fill="#CC0000"
+            />
+          </g>
+        </svg>
+      </div>
+      <h1>You're Offline</h1>
+      <p>
+        GoAlert is currently unavailable because you're not connected to the
+        internet. Some features may still be accessible from cached data.
+      </p>
+      <p>Please check your connection and try again.</p>
+      <div class="action">
+        <button onclick="window.location.reload()">Retry</button>
+      </div>
+    </div>
+  </body>
+</html>

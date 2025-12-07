@@ -135,11 +135,11 @@ cy-mobile-prod: web/src/build/static/app.js cypress ## Start cypress tests in mo
 cy-wide-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in desktop mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-wide
 	mkdir -p test/coverage/integration/cypress-wide
-	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
+	GOCOVERDIR=test/coverage/integration/cypress-wide $(MAKE) $(MFLAGS) cy-wide-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION)
 cy-mobile-prod-run: web/src/build/static/app.js cypress ## Start cypress tests in mobile mode with production build in headless mode
 	rm -rf test/coverage/integration/cypress-mobile
 	mkdir -p test/coverage/integration/cypress-mobile
-	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION) 
+	GOCOVERDIR=test/coverage/integration/cypress-mobile $(MAKE) $(MFLAGS) cy-mobile-prod CY_ACTION=run CONTAINER_TOOL=$(CONTAINER_TOOL) PG_VERSION=$(PG_VERSION) BUNDLE=1 GOALERT_VERSION=$(GIT_VERSION)
 
 swo/swodb/queries.sql.go: sqlc.yaml swo/*/*.sql migrate/migrations/*.sql */queries.sql */*/queries.sql migrate/schema.sql
 	$(SQLC) generate
@@ -229,7 +229,7 @@ check-js: generate $(NODE_DEPS)
 	$(BIN_DIR)/tools/bun -b run lint
 	$(BIN_DIR)/tools/bun -b run check
 
-check-go: generate 
+check-go: generate
 	@go mod tidy
 	# go tool ordermigrations -check
 	go tool golangci-lint run
@@ -316,6 +316,8 @@ web/src/build/static/app.js: $(NODE_DEPS)
 	cp -f web/src/app/public/icons/favicon-* web/src/app/public/logos/lightmode_* web/src/app/public/logos/darkmode_* web/src/build/static/
 	# used for email templates
 	cp web/src/app/public/logos/goalert-alt-logo.png web/src/build/static/
+	# PWA files
+	cp web/src/app/public/manifest.json web/src/app/public/sw.js web/src/app/public/offline.html web/src/build/static/
 	GOALERT_VERSION=$(GIT_VERSION) $(BIN_DIR)/tools/bun run esbuild --prod
 	touch "$@"
 

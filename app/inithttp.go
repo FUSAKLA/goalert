@@ -217,6 +217,10 @@ func (app *App) initHTTP(ctx context.Context) error {
 		return err
 	}
 
+	// PWA files must be served from root
+	mux.Handle("GET /sw.js", webH)
+	mux.Handle("GET /offline.html", webH)
+
 	// This is necessary so that we can return 404 for invalid/unknown API routes, otherwise it will get caught by the UI handler and incorrectly return the index.html or a 405 (Method Not Allowed) error.
 	mux.Handle("GET /api/", http.NotFoundHandler())
 	mux.Handle("POST /api/", http.NotFoundHandler())

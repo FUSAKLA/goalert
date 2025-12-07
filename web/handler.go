@@ -108,6 +108,42 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		// Serve PWA files from root
+		if req.URL.Path == "/sw.js" {
+			w.Header().Set("Content-Type", "application/javascript")
+			w.Header().Set("Cache-Control", "no-cache")
+			if uiDir != "" {
+				http.ServeFile(w, req, uiDir+"/static/sw.js")
+			} else {
+				sub, _ := fs.Sub(bundleFS, "src/build")
+				fd, err := sub.Open("static/sw.js")
+				if err != nil {
+					http.Error(w, "Service worker not found", http.StatusNotFound)
+					return
+				}
+				defer fd.Close()
+				io.Copy(w, fd)
+			}
+			return
+		}
+
+		if req.URL.Path == "/offline.html" {
+			w.Header().Set("Content-Type", "text/html")
+			if uiDir != "" {
+				http.ServeFile(w, req, uiDir+"/static/offline.html")
+			} else {
+				sub, _ := fs.Sub(bundleFS, "src/build")
+				fd, err := sub.Open("static/offline.html")
+				if err != nil {
+					http.Error(w, "Offline page not found", http.StatusNotFound)
+					return
+				}
+				defer fd.Close()
+				io.Copy(w, fd)
+			}
+			return
+		}
+
 		cfg := config.FromContext(req.Context())
 
 		serveTemplate(w, req, indexTmpl, renderData{
