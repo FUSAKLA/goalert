@@ -85,6 +85,7 @@ import (
 type postBody struct {
 	Status      string
 	ExternalURL string
+	GroupKey    string
 
 	Alerts []postBodyAlert
 
@@ -107,9 +108,9 @@ type postBodyAlert struct {
 		Instance  string
 	}
 	Annotations struct {
-		Summary string
-		Title   string
-		Details string
+		Summary     string
+		Title       string
+		Details     string
 		Description string
 	}
 	GeneratorURL string
@@ -247,7 +248,7 @@ func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Sto
 			Severity:  alertSeverity,
 			Source:    alert.SourcePrometheusAlertmanager,
 			ServiceID: serviceID,
-			Dedup:     alert.NewUserDedup(summary),
+			Dedup:     alert.NewUserDedup(body.GroupKey),
 		}
 
 		err = retry.DoTemporaryError(func(int) error {
