@@ -86,6 +86,9 @@ type postBodyLabels struct {
 	Instance  string
 	AlertName string `json:"alertname"`
 	Severity  string
+	Cluster   string
+	Locality  string
+	Namespace string
 }
 
 type postBodyAnnotations struct {
@@ -260,9 +263,19 @@ func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Sto
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		meta := map[string]string{}
+		if body.CommonLabels.Cluster != "" {
+			meta["cluster"] = body.CommonLabels.Cluster
+		}
+		if body.CommonLabels.Locality != "" {
+			meta["locality"] = body.CommonLabels.Locality
+		}
+		if body.CommonLabels.Namespace != "" {
+			meta["namespace"] = body.CommonLabels.Namespace
+		}
 
 		err = retry.DoTemporaryError(func(int) error {
-			_, _, err = aDB.CreateOrUpdate(ctx, msg)
+			_, _, err = aDB.CreateOrUpdateWithMeta(ctx, msg, meta)
 			return err
 		},
 			retry.Log(ctx),
