@@ -82,37 +82,31 @@ import (
 ```
 */
 
-type postBody struct {
-	Status      string
-	ExternalURL string
-	GroupKey    string
-
-	Alerts []postBodyAlert
-
-	CommonLabels struct {
-		Instance  string
-		AlertName string `json:"alertname"`
-		Severity  string
-	}
-
-	CommonAnnotations struct {
-		Title       string
-		Summary     string
-		Description string
-		Details     string
-	}
+type postBodyLabels struct {
+	Instance  string
+	AlertName string `json:"alertname"`
+	Severity  string
 }
+
+type postBodyAnnotations struct {
+	Title       string
+	Summary     string
+	Description string
+	Details     string
+}
+
+type postBody struct {
+	Status            string
+	ExternalURL       string
+	GroupKey          string
+	Alerts            []postBodyAlert
+	CommonLabels      postBodyLabels
+	CommonAnnotations postBodyAnnotations
+}
+
 type postBodyAlert struct {
-	Labels struct {
-		AlertName string
-		Instance  string
-	}
-	Annotations struct {
-		Summary     string
-		Title       string
-		Details     string
-		Description string
-	}
+	Labels       postBodyLabels
+	Annotations  postBodyAnnotations
 	GeneratorURL string
 }
 
@@ -197,6 +191,49 @@ func clientError(w http.ResponseWriter, code int, err error) bool {
 	return true
 }
 
+// ParseAlertFromBody converts a Prometheus Alertmanager webhook payload into a GoAlert alert.
+// It validates the status, sanitizes text fields, and sets appropriate alert properties.
+func ParseAlertFromBody(body postBody, serviceID string) (*alert.Alert, error) {
+	var status alert.Status
+	switch body.Status {
+	case "firing":
+		status = alert.StatusTriggered
+	case "resolved":
+		status = alert.StatusClosed
+	default:
+		return nil, fmt.Errorf("invalid status: %s", body.Status)
+	}
+
+	var buf bytes.Buffer
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal body: %w", err)
+	}
+
+	err = json.Indent(&buf, data, "", "  ")
+	if err == nil {
+		data = buf.Bytes()
+	}
+
+	var alertSeverity alert.Severity
+	if err := alertSeverity.Scan(body.CommonLabels.Severity); err != nil {
+		// Unknown severity defaults to alert.SeverityUnknown (zero value)
+	}
+
+	summary := validate.SanitizeText(body.Summary(), alert.MaxSummaryLength)
+	details := validate.SanitizeText(body.Details(string(data)), alert.MaxDetailsLength)
+
+	return &alert.Alert{
+		Summary:   summary,
+		Details:   details,
+		Status:    status,
+		Severity:  alertSeverity,
+		Source:    alert.SourcePrometheusAlertmanager,
+		ServiceID: serviceID,
+		Dedup:     alert.NewUserDedup(body.GroupKey),
+	}, nil
+}
+
 func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Store) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -217,38 +254,11 @@ func PrometheusAlertmanagerEventsAPI(aDB *alert.Store, intDB *integrationkey.Sto
 			return
 		}
 
-		var status alert.Status
-		switch body.Status {
-		case "firing":
-			status = alert.StatusTriggered
-		case "resolved":
-			status = alert.StatusClosed
-		default:
-			log.Logf(ctx, "bad request from prometheus alertmanager: missing or invalid state")
-			http.Error(w, "invalid state", http.StatusBadRequest)
+		msg, err := ParseAlertFromBody(body, serviceID)
+		if err != nil {
+			log.Logf(ctx, "bad request from prometheus alertmanager: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
-		}
-
-		data := make([]byte, buf.Len())
-		copy(data, buf.Bytes())
-		buf.Reset()
-		err = json.Indent(&buf, data, "", "  ")
-		if err == nil {
-			data = buf.Bytes()
-		}
-		var alertSeverity alert.Severity
-		if err := alertSeverity.Scan(&alertSeverity); err != nil {
-			log.Logf(ctx, "unknown severity %s, using %s", body.CommonLabels.Severity, alertSeverity)
-		}
-		summary := validate.SanitizeText(body.Summary(), alert.MaxSummaryLength)
-		msg := &alert.Alert{
-			Summary:   summary,
-			Details:   validate.SanitizeText(body.Details(string(data)), alert.MaxDetailsLength),
-			Status:    status,
-			Severity:  alertSeverity,
-			Source:    alert.SourcePrometheusAlertmanager,
-			ServiceID: serviceID,
-			Dedup:     alert.NewUserDedup(body.GroupKey),
 		}
 
 		err = retry.DoTemporaryError(func(int) error {
